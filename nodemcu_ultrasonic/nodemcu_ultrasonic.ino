@@ -1,6 +1,6 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
-#include <HCSR04.h>
+#include <Ultrasonic.h>
 
 // WiFi credentials
 const char* ssid = "SAYANI_WIFI";
@@ -11,12 +11,15 @@ const char* mqtt_server = "192.168.8.10";
 const int mqtt_port = 1883;
 const char* mqtt_topic = "home/terrace/tank/water/level";
 
-// Ultrasonic sensor pins
-const int trigPin = D1;
-const int echoPin = D2;
+// Define the pins used to connect the JSN-SR04T sensor to the Arduino
+const int TRIG_PIN = D1;
+const int ECHO_PIN = D2;
 
-// Ultrasonic sensor object
-HCSR04 hc(trigPin, echoPin); //initialisation class HCSR04 (trig pin , echo pin)
+// Create an instance of the Ultrasonic class
+Ultrasonic ultrasonic(TRIG_PIN, ECHO_PIN);
+
+// Create a char array to store the converted reading
+char readingCharArray[10];
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
@@ -45,8 +48,8 @@ void reconnect() {
 
 // Publish the distance to the MQTT topic
 void publishDistance() {
-  // Measure the distance with the ultrasonic sensor
-  long distance = hc.dist();
+  // Get the distance from the ultrasonic sensor
+  long distance = ultrasonic.read();
 
   // Blink the LED
   digitalWrite(LED_BUILTIN, HIGH);
@@ -58,25 +61,26 @@ void publishDistance() {
   Serial.print("Distance: ");
   Serial.println(distance);
 
-  // Publish the distance to the MQTT topic
-  mqttClient.publish(mqtt_topic, String(distance).c_str());
+  // Convert the distance reading to a string
+  sprintf(readingCharArray, "%d", distance);
+
+   // Publish the distance to the MQTT topic
+  //mqttClient.publish(mqtt_topic, String(distance).c_str());
+  mqttClient.publish(mqtt_topic, readingCharArray);
 }
 
 // Setup function
 void setup() {
+  // Set the LED pin as output
+  pinMode(LED_BUILTIN, OUTPUT);
+
   // Initialize serial communication
   Serial.begin(115200);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
-  mqttClient.setServer(mqtt_server, mqtt_port);
-
-  // Reconnect to WiFi and MQTT broker
-  reconnect();
-
-  // Set the LED pin as output
-  pinMode(LED_BUILTIN, OUTPUT);
+  mqttClient.setServer(mqtt_server, mqtt_port);  
 }
 
 // Loop function
@@ -90,6 +94,6 @@ void loop() {
   // Publish the distance to the MQTT topic
   publishDistance();
 
-  // Wait for 5 minutes before measuring the distance again
+  // Wait for a second before measuring the distance again
   delay(1000);
 }
