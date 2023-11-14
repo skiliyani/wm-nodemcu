@@ -38,7 +38,10 @@ void reconnect() {
 
   if (!mqttClient.connected()) {
     Serial.println("Reconnecting to MQTT broker...");
-    while (!mqttClient.connect("ESP8266")) {
+    // Create a random client ID
+    String clientId = "ESP8266-";
+    clientId += String(random(0xffff), HEX);
+    while (!mqttClient.connect(clientId.c_str())) {
       delay(500);
       Serial.print(".");
     }
