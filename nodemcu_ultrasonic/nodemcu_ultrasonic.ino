@@ -9,11 +9,21 @@ const char* password = "00011101";
 // MQTT broker credentials
 const char* mqtt_server = "192.168.8.10";
 const int mqtt_port = 1883;
-const char* mqtt_topic = "home/terrace/tank/water/level";
+const char* mqtt_topic_water = "home/tank/water";
+const char* mqtt_topic_light = "home/environment/light";
 
 // Define the pins used to connect the JSN-SR04T sensor to the Arduino
 const int TRIG_PIN = D1;
 const int ECHO_PIN = D2;
+
+// LDR sensor pin
+const int ldr_sensor_pin = D5;
+
+// Define the interval in milliseconds to read the LDR sensor data
+const int interval = 10000;
+
+// Define a variable to store the previous time the LDR sensor data was read
+unsigned long previousTime = 0;
 
 // Create an instance of the Ultrasonic class
 Ultrasonic ultrasonic(TRIG_PIN, ECHO_PIN);
@@ -38,10 +48,7 @@ void reconnect() {
 
   if (!mqttClient.connected()) {
     Serial.println("Reconnecting to MQTT broker...");
-    // Create a random client ID
-    String clientId = "ESP8266-";
-    clientId += String(random(0xffff), HEX);
-    while (!mqttClient.connect(clientId.c_str())) {
+    while (!mqttClient.connect("amica-node-mcu")) {
       delay(500);
       Serial.print(".");
     }
@@ -68,14 +75,47 @@ void publishDistance() {
   sprintf(readingCharArray, "%d", distance);
 
    // Publish the distance to the MQTT topic
-  //mqttClient.publish(mqtt_topic, String(distance).c_str());
-  mqttClient.publish(mqtt_topic, readingCharArray);
+  mqttClient.publish(mqtt_topic_water, readingCharArray);
+}
+
+// Publish LDR sensor value to MQTT topic
+void publishBrightness() {
+  // Get the current time
+  unsigned long currentTime = millis();
+
+  // Check if it's time to read the LDR sensor data
+  if (currentTime - previousTime >= interval) {
+    // Read LDR sensor value
+    int ldr_sensor_value = digitalRead(ldr_sensor_pin);
+
+     // Blink the LED
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(100);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(100);
+
+    // Print the sensor value to the serial monitor
+    Serial.print("Brightness: ");
+    Serial.println(ldr_sensor_value);
+
+    // Convert LDR sensor value to string
+    sprintf(readingCharArray, "%d", ldr_sensor_value);
+
+    // Publish LDR sensor value to MQTT topic
+    mqttClient.publish(mqtt_topic_light, readingCharArray);
+
+    // Update the previous time the digital data was read
+    previousTime = currentTime;
+  }  
 }
 
 // Setup function
 void setup() {
   // Set the LED pin as output
   pinMode(LED_BUILTIN, OUTPUT);
+
+  // Set LDR sensor pin as input
+  pinMode(ldr_sensor_pin, INPUT);
 
   // Initialize serial communication
   Serial.begin(115200);
@@ -96,6 +136,9 @@ void loop() {
 
   // Publish the distance to the MQTT topic
   publishDistance();
+
+  // Publish the light to the MQTT topic
+  publishBrightness();
 
   // Wait for a second before measuring the distance again
   delay(1000);
