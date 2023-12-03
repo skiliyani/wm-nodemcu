@@ -7,7 +7,7 @@ const char* ssid = "SAYANI_WIFI";
 const char* password = "00011101";
 
 // MQTT broker credentials
-const char* mqtt_server = "192.168.8.10";
+const char* mqtt_server = "192.168.31.10";
 const int mqtt_port = 1883;
 const char* mqtt_topic_water = "home/tank/water";
 const char* mqtt_topic_light = "home/environment/light";
@@ -17,13 +17,10 @@ const int TRIG_PIN = D1;
 const int ECHO_PIN = D2;
 
 // LDR sensor pin
-const int ldr_sensor_pin = D5;
+const int ldr_sensor_pin = A0;
 
 // Define the interval in milliseconds to read the LDR sensor data
 const int interval = 10000;
-
-// Define a variable to store the previous time the LDR sensor data was read
-unsigned long previousTime = 0;
 
 // Create an instance of the Ultrasonic class
 Ultrasonic ultrasonic(TRIG_PIN, ECHO_PIN);
@@ -64,12 +61,6 @@ void publishDistance() {
   // Get the distance from the ultrasonic sensor
   long distance = ultrasonic.read();
 
-  // Blink the LED
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(100);
-  digitalWrite(LED_BUILTIN, LOW);
-  delay(100);
-
   // Print the distance to the serial monitor
   Serial.print("Distance: ");
   Serial.println(distance);
@@ -83,19 +74,8 @@ void publishDistance() {
 
 // Publish LDR sensor value to MQTT topic
 void publishBrightness() {
-  // Get the current time
-  unsigned long currentTime = millis();
-
-  // Check if it's time to read the LDR sensor data
-  if (currentTime - previousTime >= interval) {
     // Read LDR sensor value
-    int ldr_sensor_value = digitalRead(ldr_sensor_pin);
-
-     // Blink the LED
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(100);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(100);
+    int ldr_sensor_value = analogRead(ldr_sensor_pin);
 
     // Print the sensor value to the serial monitor
     Serial.print("Brightness: ");
@@ -106,10 +86,6 @@ void publishBrightness() {
 
     // Publish LDR sensor value to MQTT topic
     mqttClient.publish(mqtt_topic_light, readingCharArray);
-
-    // Update the previous time the digital data was read
-    previousTime = currentTime;
-  }  
 }
 
 // Setup function
@@ -142,6 +118,12 @@ void loop() {
 
   // Publish the light to the MQTT topic
   publishBrightness();
+
+  // Blink the LED
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(100);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(100);
 
   // Wait for a second before measuring the distance again
   delay(1000);
