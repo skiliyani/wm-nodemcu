@@ -7,7 +7,7 @@ const char* ssid = "SAYANI_WIFI";
 const char* password = "00011101";
 
 // MQTT broker credentials
-const char* mqtt_server = "192.168.31.10";
+const char* mqtt_server = "192.168.68.10";
 const int mqtt_port = 1883;
 const char* mqtt_topic_water = "home/tank/water";
 const char* mqtt_topic_light = "home/environment/light";
@@ -18,9 +18,6 @@ const int ECHO_PIN = D2;
 
 // LDR sensor pin
 const int ldr_sensor_pin = A0;
-
-// Define the interval in milliseconds to read the LDR sensor data
-const int interval = 10000;
 
 // Create an instance of the Ultrasonic class
 Ultrasonic ultrasonic(TRIG_PIN, ECHO_PIN);
