@@ -3,8 +3,8 @@
 #include <Ultrasonic.h>
 
 // WiFi credentials
-const char* ssid = "SAYANI_WIFI";
-const char* password = "00011101";
+const char* ssid = "SAYANI_WIFI_IoT";
+const char* password = "IoooT543";
 
 // MQTT broker credentials
 const char* mqtt_server = "192.168.68.10";
