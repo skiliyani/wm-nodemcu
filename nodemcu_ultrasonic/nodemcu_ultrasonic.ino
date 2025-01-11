@@ -7,10 +7,10 @@ const char* ssid = "SAYANI_WIFI_IoT";
 const char* password = "IoooT543";
 
 // MQTT broker credentials
-const char* mqtt_server = "192.168.68.10";
+const char* mqtt_server = "192.168.68.11";
 const int mqtt_port = 1883;
-const char* mqtt_topic_water = "home/tank/water";
-const char* mqtt_topic_light = "home/environment/light";
+const char* mqtt_topic_water = "home/terrace/water_tank_level";
+const char* mqtt_topic_light = "home/terrace/light_intensity";
 
 // Define the pins used to connect the JSN-SR04T sensor to the Arduino
 const int TRIG_PIN = D1;
